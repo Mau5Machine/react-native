@@ -1,44 +1,21 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, View, Button } from "react-native";
-import ApolloClient from "apollo-boost";
+import React from "react";
+import { ApolloClient } from "apollo-boost";
+import { createHttpLink } from "apollo-link-http";
 import { ApolloProvider } from "@apollo/react-hooks";
-import DataComponent from "./DataComponent";
-
+import { InMemoryCache } from "apollo-cache-inmemory";
+import Main from "./Main";
+import { View } from "react-native";
 const client = new ApolloClient({
-  uri: "http://hasura.itbvault.com/v1/graphql"
+  link: createHttpLink({
+    uri: "http://hasura.itbvault.com/v1/graphql"
+  }),
+  cache: new InMemoryCache()
 });
 
 export default function App() {
-  const [text, setText] = useState("text one");
-
-  const _onPress = () => {
-    if (text === "text one") {
-      setText("This is the new text!");
-    } else {
-      setText("text one");
-    }
-  };
-
   return (
     <ApolloProvider client={client}>
-      <View style={styles.container}>
-        <Text style={styles.text}>{text}</Text>
-        <Button title="Change Text" onPress={_onPress} />
-        <DataComponent />
-      </View>
+      <Main />
     </ApolloProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "black",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  text: {
-    color: "white",
-    fontSize: 20
-  }
-});
