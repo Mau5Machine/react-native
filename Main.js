@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { StyleSheet, View, FlatList } from "react-native";
+import { StyleSheet, View, FlatList, Button } from "react-native";
 import { useQuery } from "@apollo/react-hooks";
 import { gql } from "apollo-boost";
-import { GoalItem, GoalInput } from "./components";
+import { GoalInput } from "./components";
+import GoalItem from "./components/GoalItem";
 
 const GET_DATA = gql`
   query {
@@ -13,18 +14,26 @@ const GET_DATA = gql`
   }
 `;
 
-export default function Main() {
-  const [goal, setGoal] = useState("");
+const Main = () => {
   const [goalsList, setGoalsList] = useState([]);
-  const updateGoal = enteredText => setGoal(enteredText);
+  const [isAddMode, setIsAddMode] = useState(false);
 
-  const addGoalHandler = () => {
+  const addGoalHandler = goalTitle => {
     setGoalsList(currentGoals => [
       ...currentGoals,
-      { key: Math.random().toString(), value: goal }
+      { key: Math.random().toString(), value: goalTitle }
     ]);
-    setGoal("");
-    console.log(goalsList);
+    setIsAddMode(false);
+  };
+
+  const deleteGoalHandler = goalId => {
+    setGoalsList(currentGoals => {
+      return currentGoals.filter(goal => goal.key !== goalId);
+    });
+  };
+
+  const cancelGoalAdditionHandler = () => {
+    setIsAddMode(false);
   };
 
   const { data, loading, error } = useQuery(GET_DATA);
@@ -32,18 +41,21 @@ export default function Main() {
 
   return (
     <View style={styles.screen}>
+      <Button title="Add New Goal" onPress={() => setIsAddMode(true)} />
       <GoalInput
-        goal={goal}
-        updateGoal={updateGoal}
-        addGoalHandler={addGoalHandler}
+        visible={isAddMode}
+        onAddGoal={addGoalHandler}
+        onCancel={cancelGoalAdditionHandler}
       />
       <FlatList
         data={goalsList}
-        renderItem={itemData => <GoalItem item={itemData.item.value} />}
+        renderItem={itemData => (
+          <GoalItem item={itemData.item} onDelete={deleteGoalHandler} />
+        )}
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   screen: {
@@ -51,3 +63,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   }
 });
+
+export default Main;
